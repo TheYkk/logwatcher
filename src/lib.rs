@@ -40,8 +40,8 @@ impl LogWatcher {
         Ok(LogWatcher {
             filename: filename.as_ref().to_string_lossy().to_string(),
             inode: metadata.ino(),
-            pos: pos,
-            reader: reader,
+            pos,
+            reader,
             finish: false,
         })
     }
