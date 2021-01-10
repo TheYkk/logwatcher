@@ -49,7 +49,6 @@ fn main() -> std::io::Result<()> {
     while rx.recv().unwrap() {
         println!("Exiting app");
         write_to_file(&mut buffer, i).unwrap();
-
         i += 1;
         exit(0)
     }
@@ -61,7 +60,6 @@ fn main() -> std::io::Result<()> {
             if let Err(e) = write_to_file(&mut buffer, i) {
                 println!("Error verdim ben {}", e)
             }
-
             i += 1;
         }
 
