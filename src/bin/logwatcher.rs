@@ -14,27 +14,21 @@ use std::{
         Receiver,
         Sender,
     },
-    thread::sleep,
-    time,
 };
 
 use flate2::Compression;
 
 fn main() -> std::io::Result<()> {
-    let argsm: Vec<String> = args().collect();
+    // let argsm: Vec<String> = args().collect();
     // ? ➜ ./target/release/logwatcher -s a -b c -d "sa" 123 dbc
     // ? ["./target/release/logwatcher", "-s", "a", "-b", "c", "-d", "sa",
     // "123", "dbc"]
-    println!("{:?}", argsm);
-    let (tx, mut rx): (Sender<bool>, Receiver<bool>) = channel();
+    // println!("{:?}", argsm);
+    let (tx, rx): (Sender<bool>, Receiver<bool>) = channel();
 
     ctrlc::set_handler(move || {
         println!("received Ctrl+C!");
         tx.send(true).unwrap();
-
-        // sleep(time::Duration::from_secs(2));
-
-        exit(0)
     })
     .expect("Error setting Ctrl-C handler");
 
@@ -51,28 +45,47 @@ fn main() -> std::io::Result<()> {
     let mut buffer = String::from("");
 
     let mut i = 0;
+
+    while rx.recv().unwrap() {
+        println!("Exiting app");
+        write_to_file(&mut buffer, i).unwrap();
+
+        i += 1;
+        exit(0)
+    }
+
     log_watcher.watch(&mut move |line: String| {
         buffer.push_str(line.as_str());
-
         // ? Buffer 100mb of log file to RAM
         if buffer.len() > 1024 * 1024 * 100 {
-            let output =
-                File::create(format!("logs/log_archive_{}.gz", i)).unwrap();
+            if let Err(e) = write_to_file(&mut buffer, i) {
+                println!("Error verdim ben {}", e)
+            }
 
-            let mut gzip = GzEncoder::new(output, Compression::fast());
-
-            gzip.write_all(buffer.as_bytes()).unwrap();
-
-            println!("Flush {} bytes", buffer.len());
-
-            buffer.clear();
             i += 1;
-            gzip.finish().unwrap();
         }
 
-        // ? Handle ctrl+c action and save buffer to file
-        while rx.recv().unwrap() {}
         LogWatcherAction::None
     });
+    Ok(())
+}
+
+fn write_to_file(
+    buffer: &mut String,
+    i: i32,
+) -> Result<(), String> {
+    let output = File::create(format!("logs/log_archive_{}.gz", i)).unwrap();
+
+    let mut gzip = GzEncoder::new(output, Compression::fast());
+
+    // match gzip.write_all(buffer.as_bytes()) { Err(e) => { return
+    // e.to_string() } }
+    gzip.write_all(buffer.as_bytes())
+        .map_err(|e| e.to_string())?;
+
+    println!("Flush {} bytes", buffer.len());
+
+    buffer.clear();
+    gzip.finish().unwrap();
     Ok(())
 }
