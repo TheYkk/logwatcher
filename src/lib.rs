@@ -1,13 +1,15 @@
-use std::fs::File;
-use std::io;
-use std::io::prelude::*;
-use std::io::BufReader;
-use std::io::ErrorKind;
-use std::io::SeekFrom;
-use std::os::unix::fs::MetadataExt;
-use std::path::Path;
-use std::thread::sleep;
-use std::time::Duration;
+use std::{
+    fs::File,
+    io,
+    io::prelude::*,
+    io::BufReader,
+    io::ErrorKind,
+    io::SeekFrom,
+    os::unix::fs::MetadataExt,
+    path::Path,
+    thread::sleep,
+    time::Duration,
+};
 
 pub enum LogWatcherAction {
     None,
@@ -16,14 +18,16 @@ pub enum LogWatcherAction {
 
 pub struct LogWatcher {
     filename: String,
-    inode: u64,
-    pos: u64,
-    reader: BufReader<File>,
-    finish: bool,
+    inode:    u64,
+    pos:      u64,
+    reader:   BufReader<File>,
+    finish:   bool,
 }
 
 impl LogWatcher {
-    pub fn register<P: AsRef<Path>>(filename: P) -> Result<LogWatcher, io::Error> {
+    pub fn register<P: AsRef<Path>>(
+        filename: P
+    ) -> Result<LogWatcher, io::Error> {
         let f = match File::open(&filename) {
             Ok(x) => x,
             Err(err) => return Err(err),
@@ -46,8 +50,10 @@ impl LogWatcher {
         })
     }
 
-    fn reopen_if_log_rotated<F: ?Sized>(&mut self, callback: &mut F)
-    where
+    fn reopen_if_log_rotated<F: ?Sized>(
+        &mut self,
+        callback: &mut F,
+    ) where
         F: FnMut(String) -> LogWatcherAction,
     {
         loop {
@@ -84,8 +90,10 @@ impl LogWatcher {
         }
     }
 
-    pub fn watch<F: ?Sized>(&mut self, callback: &mut F)
-    where
+    pub fn watch<F: ?Sized>(
+        &mut self,
+        callback: &mut F,
+    ) where
         F: FnMut(String) -> LogWatcherAction,
     {
         loop {
@@ -109,7 +117,9 @@ impl LogWatcher {
                             break;
                         } else {
                             self.reopen_if_log_rotated(callback);
-                            self.reader.seek(SeekFrom::Start(self.pos)).unwrap();
+                            self.reader
+                                .seek(SeekFrom::Start(self.pos))
+                                .unwrap();
                         }
                     }
                 }
