@@ -12,6 +12,7 @@ license = "MIT"
 [dependencies]
 flate2 = "1.0.19"
 ctrlc = { version = "3.0", features = ["termination"] }
+unbytify = "0.2"
 
 [profile.dev]
 opt-level = 3

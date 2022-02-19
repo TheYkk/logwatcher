@@ -1,10 +1,12 @@
 use std::{
     fs::File,
-    io,
-    io::prelude::*,
-    io::BufReader,
-    io::ErrorKind,
-    io::SeekFrom,
+    io::{
+        BufReader,
+        prelude::*,
+        self,
+        ErrorKind,
+        SeekFrom
+    },
     os::unix::fs::MetadataExt,
     path::Path,
     thread::sleep,
